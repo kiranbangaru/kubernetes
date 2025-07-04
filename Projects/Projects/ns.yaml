@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  creationTimestamp: "2025-06-26T08:08:07Z"
+  labels:
+    kubernetes.io/metadata.name: ns01
+  name: ns01
+  resourceVersion: "12490"
+  uid: 698f1ba2-39c5-4f47-8bc7-f13c3755e72d
+spec:
+  finalizers:
+  - kubernetes
+status:
+  phase: Active

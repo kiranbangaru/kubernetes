@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-env-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-env-demo
+  template:
+    metadata:
+      labels:
+        app: nginx-env-demo
+    spec:
+      containers:
+        - name: nginx
+          image: kiranbangaru/docker-public:v1
+          ports:
+            - containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: nginx-env-config
