@@ -1,0 +1,299 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2025-07-02T08:27:14Z"
+  generateName: kube-flannel-ds-
+  labels:
+    app: flannel
+    controller-revision-hash: 76b846bffc
+    pod-template-generation: "1"
+    tier: node
+  name: kube-flannel-ds-ghmkb
+  namespace: kube-flannel
+  ownerReferences:
+  - apiVersion: apps/v1
+    blockOwnerDeletion: true
+    controller: true
+    kind: DaemonSet
+    name: kube-flannel-ds
+    uid: d045914d-52ad-4e82-b31d-9e1187b2e149
+  resourceVersion: "80650"
+  uid: 02b46cdb-5d31-400b-a67c-e3ae81fe6b4a
+spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchFields:
+          - key: metadata.name
+            operator: In
+            values:
+            - ip-172-31-28-93
+  containers:
+  - args:
+    - --ip-masq
+    - --kube-subnet-mgr
+    command:
+    - /opt/bin/flanneld
+    env:
+    - name: POD_NAME
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.name
+    - name: POD_NAMESPACE
+      valueFrom:
+        fieldRef:
+          apiVersion: v1
+          fieldPath: metadata.namespace
+    - name: EVENT_QUEUE_DEPTH
+      value: "5000"
+    - name: CONT_WHEN_CACHE_NOT_READY
+      value: "false"
+    image: ghcr.io/flannel-io/flannel:v0.27.0
+    imagePullPolicy: IfNotPresent
+    name: kube-flannel
+    resources:
+      requests:
+        cpu: 100m
+        memory: 50Mi
+    securityContext:
+      capabilities:
+        add:
+        - NET_ADMIN
+        - NET_RAW
+      privileged: false
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /run/flannel
+      name: run
+    - mountPath: /etc/kube-flannel/
+      name: flannel-cfg
+    - mountPath: /run/xtables.lock
+      name: xtables-lock
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-bqmlm
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  hostNetwork: true
+  initContainers:
+  - args:
+    - -f
+    - /flannel
+    - /opt/cni/bin/flannel
+    command:
+    - cp
+    image: ghcr.io/flannel-io/flannel-cni-plugin:v1.7.1-flannel1
+    imagePullPolicy: IfNotPresent
+    name: install-cni-plugin
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /opt/cni/bin
+      name: cni-plugin
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-bqmlm
+      readOnly: true
+  - args:
+    - -f
+    - /etc/kube-flannel/cni-conf.json
+    - /etc/cni/net.d/10-flannel.conflist
+    command:
+    - cp
+    image: ghcr.io/flannel-io/flannel:v0.27.0
+    imagePullPolicy: IfNotPresent
+    name: install-cni
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /etc/cni/net.d
+      name: cni
+    - mountPath: /etc/kube-flannel/
+      name: flannel-cfg
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-bqmlm
+      readOnly: true
+  nodeName: ip-172-31-28-93
+  preemptionPolicy: PreemptLowerPriority
+  priority: 2000001000
+  priorityClassName: system-node-critical
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: flannel
+  serviceAccountName: flannel
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoSchedule
+    operator: Exists
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/disk-pressure
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/memory-pressure
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/pid-pressure
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/unschedulable
+    operator: Exists
+  - effect: NoSchedule
+    key: node.kubernetes.io/network-unavailable
+    operator: Exists
+  volumes:
+  - hostPath:
+      path: /run/flannel
+      type: ""
+    name: run
+  - hostPath:
+      path: /opt/cni/bin
+      type: ""
+    name: cni-plugin
+  - hostPath:
+      path: /etc/cni/net.d
+      type: ""
+    name: cni
+  - configMap:
+      defaultMode: 420
+      name: kube-flannel-cfg
+    name: flannel-cfg
+  - hostPath:
+      path: /run/xtables.lock
+      type: FileOrCreate
+    name: xtables-lock
+  - name: kube-api-access-bqmlm
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2025-07-04T04:41:52Z"
+    status: "True"
+    type: PodReadyToStartContainers
+  - lastProbeTime: null
+    lastTransitionTime: "2025-07-02T08:27:16Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2025-07-04T04:42:08Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2025-07-04T04:42:08Z"
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2025-07-02T08:27:14Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://2fcbe7eee59fa9f725f1f702a94ed4f92e360b938978350f60eae28e1b1b10d1
+    image: ghcr.io/flannel-io/flannel:v0.27.0
+    imageID: ghcr.io/flannel-io/flannel@sha256:1144f69c99e5c2ee7f02369e5b2ad669b6956efbb091353df1980bf8910767ff
+    lastState:
+      terminated:
+        containerID: containerd://2c24cb554845fcdba7fc74d3a9852071f39cde595fcadb07bfb30bbf56920d87
+        exitCode: 255
+        finishedAt: "2025-07-04T04:41:38Z"
+        reason: Unknown
+        startedAt: "2025-07-04T02:47:40Z"
+    name: kube-flannel
+    ready: true
+    restartCount: 5
+    started: true
+    state:
+      running:
+        startedAt: "2025-07-04T04:42:07Z"
+    volumeMounts:
+    - mountPath: /run/flannel
+      name: run
+    - mountPath: /etc/kube-flannel/
+      name: flannel-cfg
+    - mountPath: /run/xtables.lock
+      name: xtables-lock
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-bqmlm
+      readOnly: true
+      recursiveReadOnly: Disabled
+  hostIP: 172.31.28.93
+  hostIPs:
+  - ip: 172.31.28.93
+  initContainerStatuses:
+  - containerID: containerd://effdb8ad88f179190aa09998114f2b3b149798b162f35e84eb285dc99d2fa1ca
+    image: ghcr.io/flannel-io/flannel-cni-plugin:v1.7.1-flannel1
+    imageID: ghcr.io/flannel-io/flannel-cni-plugin@sha256:cb3176a2c9eae5fa0acd7f45397e706eacb4577dac33cad89f93b775ff5611df
+    lastState: {}
+    name: install-cni-plugin
+    ready: true
+    restartCount: 5
+    started: false
+    state:
+      terminated:
+        containerID: containerd://effdb8ad88f179190aa09998114f2b3b149798b162f35e84eb285dc99d2fa1ca
+        exitCode: 0
+        finishedAt: "2025-07-04T04:41:52Z"
+        reason: Completed
+        startedAt: "2025-07-04T04:41:51Z"
+    volumeMounts:
+    - mountPath: /opt/cni/bin
+      name: cni-plugin
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-bqmlm
+      readOnly: true
+      recursiveReadOnly: Disabled
+  - containerID: containerd://874cf30b88330e1857664e12f813484cccfd27b39c4776402490acd00353ec3a
+    image: ghcr.io/flannel-io/flannel:v0.27.0
+    imageID: ghcr.io/flannel-io/flannel@sha256:1144f69c99e5c2ee7f02369e5b2ad669b6956efbb091353df1980bf8910767ff
+    lastState: {}
+    name: install-cni
+    ready: true
+    restartCount: 0
+    started: false
+    state:
+      terminated:
+        containerID: containerd://874cf30b88330e1857664e12f813484cccfd27b39c4776402490acd00353ec3a
+        exitCode: 0
+        finishedAt: "2025-07-04T04:42:00Z"
+        reason: Completed
+        startedAt: "2025-07-04T04:41:59Z"
+    volumeMounts:
+    - mountPath: /etc/cni/net.d
+      name: cni
+    - mountPath: /etc/kube-flannel/
+      name: flannel-cfg
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-bqmlm
+      readOnly: true
+      recursiveReadOnly: Disabled
+  phase: Running
+  podIP: 172.31.28.93
+  podIPs:
+  - ip: 172.31.28.93
+  qosClass: Burstable
+  startTime: "2025-07-02T08:27:14Z"
